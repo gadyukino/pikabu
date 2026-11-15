@@ -3207,7 +3207,7 @@ function draw(){
   ctx.textAlign='center';ctx.textBaseline='alphabetic';
   ctx.font=`${Math.round(T*.48)}px 'Ruslan Display', serif`;ctx.lineWidth=4;ctx.strokeStyle='#15110f';ctx.strokeText('Гадюкино',lx,9.75*T);ctx.fillStyle='#d9ab4b';ctx.fillText('Гадюкино',lx,9.75*T);
   ctx.font=`700 ${Math.round(T*.3)}px 'Alegreya Sans', sans-serif`;ctx.lineWidth=3;ctx.strokeText(ch.set.toLowerCase(),lx,10.2*T);ctx.fillStyle='#f0e4c9';ctx.fillText(ch.set.toLowerCase(),lx,10.2*T);
-  if(G.buildType){ctx.strokeStyle='rgba(255,255,255,.14)';ctx.lineWidth=1;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(canBuild(x,y))ctx.strokeRect(x*T+2.5,y*T+2.5,T-5,T-5)}
+  uiBuildHi(T);  // подсветка клеток для выбранного бойца — блок UI1
   const sel=G.sel;
   if(sel){const s=tStats(sel);circle((sel.x+.5)*T,(sel.y+.5)*T,s.range*T,'rgba(217,171,75,.12)','rgba(217,171,75,.75)')}
   if(G.buildType&&G.hover){const[hx,hy]=G.hover;const ok=canBuild(hx,hy);const rr=TYPES[G.buildType].range;
@@ -5026,6 +5026,112 @@ function jkBubble(c,T,x,y,txt,al){const fs=Math.max(12,Math.round(T*.34)),pad=fs
   for(const b of G.jb){const a=G.t-b.t0,al=Math.min(1,a/.15,(b.dur-a)/.3),[x,y]=jkPos(b.who),pop=a<.15?.85+a:1;
     ctx.save();ctx.translate(x*T,y*T);ctx.scale(pop,pop);ctx.translate(-x*T,-y*T);jkBubble(ctx,T,x,y,b.txt,Math.max(0,al));ctx.restore()}}}
 /*}JOKE1*/
+/*UI1{*/
+/* ---------- телефонный интерфейс (15.11): одна всплывашка за раз, название главы в ширину поля, кнопки окна внизу,
+   подсветка клеток для бойца, короткие имена в тесной полоске, подсказка про казну.
+   Блок стоит после вставок частей 2–4 (они идут перед curChapter), поэтому все обёртки здесь — внешние и действуют во всех четырёх играх.
+   Без ?. и ?? и новинок canvas: старые Android WebView. ---------- */
+{const st=document.createElement('style');st.textContent=`
+.modal .mcard{box-sizing:border-box}.mcard{--mp:22px}body.compact .mcard{--mp:14px}
+.mcard>.row:last-child{position:sticky;bottom:calc(-1*var(--mp));z-index:3;margin:0 calc(-1*var(--mp));padding:10px var(--mp) 10px;background:var(--panel);box-shadow:0 -10px 12px -8px rgba(0,0,0,.45)}
+.mcard.wide>.row:last-child{background:var(--panel)}
+.achToast.achIn{position:static;transform:none;width:auto;max-width:none;margin:0;box-shadow:none;transition:none;text-align:left;padding:8px 12px;animation:uiAchIn .45s ease-out}
+@keyframes uiAchIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+body.ui-ach .toast2{visibility:hidden}
+.card .sn{display:none}
+body.compact .bar.tight .card{grid-template-columns:auto minmax(0,1fr);justify-items:start;text-align:left;align-items:center;column-gap:3px;padding:2px 3px}
+body.compact .bar.tight .card canvas{grid-row:span 2;width:26px;height:26px}
+body.compact .bar.tight .card .sn{display:block;font-style:normal;font-weight:700;font-size:9px;letter-spacing:-.01em;line-height:1.1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:inherit}
+body.compact .bar.tight .card small .mw{display:none}
+/* часть 2: значки «земля/воздух» в тесной полоске — мельче и в нижний правый угол, чтобы имя шло во всю ширину */
+body.compact .bar.tight .card{padding-right:3px!important}body.compact .bar.tight .card .lay{top:auto!important;bottom:2px;right:2px!important;flex-direction:row;transform:scale(.75);transform-origin:bottom right}
+body.compact .where b{text-wrap:balance}
+.card.uiPulse:not(.poor){animation:uiPulse 1s ease-in-out 3}
+@keyframes uiPulse{50%{border-color:var(--gold);box-shadow:0 0 0 2px rgba(217,171,75,.55),0 0 14px rgba(217,171,75,.45)}}
+`;document.head.appendChild(st)}
+
+/* --- 1. одна всплывашка за раз ---
+   Старшинство: окно > ачивка > обучение > лента названия главы > строка toast2. Пока занято старшее, строки ждут в очереди (до 45 с, не больше 4). */
+const UIQ=[];
+function uiT2(){const t=$('toast2');return t&&!t.hidden?t:null}
+function uiT2msg(t){const n=t.firstChild;return n&&n.nodeType===3?n.nodeValue:t.textContent.replace(/×$/,'')}
+function uiFight(){return !!(G&&!G.over&&!$('game').hidden)}
+function uiBusy(){if(uiFight()&&!$('modal').hidden)return 'modal';const v=$('victory');if(v&&!v.hidden)return 'vic';
+  if(document.querySelector('.achToast:not(.achIn)'))return 'ach';const tb=$('tutB');if(tb&&!tb.hidden)return 'tut';if(G&&G.intro>0&&!$('game').hidden)return 'intro';return ''}
+function uiPark(t){/* убрать видимую строку и вернуть её в начало очереди — покажется, когда освободится место */
+  const m=uiT2msg(t);t.hidden=true;clearTimeout(t._h);if(uiFight()&&m&&!UIQ.some(q=>q.m===m))UIQ.unshift({m,t:Date.now()})}
+{const _t2=toast2;toast2=function(m){
+  /* вне боя (меню, итоги уровня, неудачная реклама) — сразу, как раньше */
+  if(!uiFight()){_t2(m);return}
+  if(uiBusy()||uiT2()||UIQ.length){if(!UIQ.some(q=>q.m===m)&&!(uiT2()&&uiT2msg(uiT2())===m)){UIQ.push({m,t:Date.now()});if(UIQ.length>4)UIQ.shift()}return}
+  _t2(m)};
+ window.__uiT2=_t2;
+ setInterval(()=>{if(!UIQ.length)return;if(!uiFight()){UIQ.length=0;return}const now=Date.now();while(UIQ.length&&now-UIQ[0].t>45000)UIQ.shift();
+   if(!UIQ.length||uiBusy()||uiT2())return;_t2(UIQ.shift().m)},400)}
+/* окно в бою прячет строку (вернётся после окна); окно итогов — убирает очередь насовсем */
+{const _md=modal;modal=function(h){const r=_md(h);try{const t=uiT2();if(t){if(uiFight())uiPark(t);else{t.hidden=true;clearTimeout(t._h)}}if(!uiFight())UIQ.length=0;uiAchMove()}catch(e){}return r}}
+{const _tm=toMenu;toMenu=function(){UIQ.length=0;const t=$('toast2');if(t){t.hidden=true;clearTimeout(t._h)}return _tm.apply(this,arguments)}}
+/* ачивка: поверх окна итогов не висит, а встаёт в окно под заголовок; в бою на время ачивки строка toast2 прячется */
+function uiAchMove(){const c=$('mcard');if($('modal').hidden||!c)return;
+  for(const el of document.querySelectorAll('body>.achToast:not(.achIn)')){if(el.dataset.ui)continue;el.dataset.ui='1';
+    const k=el.cloneNode(true);k.className='achToast achIn';k.removeAttribute('data-ui');for(const x of k.querySelectorAll('button'))x.remove();el.style.display='none';
+    const h=c.querySelector('h2');if(h&&h.parentNode===c)h.after(k);else c.prepend(k)}}
+function uiAchState(){const on=!!document.querySelector('body>.achToast:not(.achIn):not([data-ui])');document.body.classList.toggle('ui-ach',on);
+  if(on){const t=uiT2();if(t&&uiFight())uiPark(t)}}
+try{new MutationObserver(()=>{uiAchMove();uiAchState()}).observe(document.body,{childList:true})}catch(e){}
+/* обучение ждёт, пока сойдёт лента с названием главы */
+{const _tt=tutTick;tutTick=function(){if(G&&G.intro>0){const tb=$('tutB');if(tb)tb.hidden=true;return}return _tt()}}
+
+/* --- 2. ленты на поле: длинная строка уменьшается, а если и так не лезет — делится на две строки по « · » --- */
+{const _bn=banner;banner=function(txt,size,ty,display){
+  /* подсказки у верхнего края («Расставьте бойцов…», отсчёт волны) не рисуем под всплывающей строкой */
+  if(!display&&ty<1.6&&((G.intro>0)||uiT2()||document.querySelector('body>.achToast:not(.achIn):not([data-ui])')))return;
+  const T=G.T,fnt=s=>display?`${Math.round(s)}px 'Ruslan Display', serif`:`700 ${Math.round(s)}px 'Alegreya Sans', sans-serif`;
+  ctx.font=fnt(size);const m=ctx.measureText(txt).width,A=W*T-2*T;
+  if(m<=A-2.4*size)return _bn(txt,size,ty,display);
+  const k=A/(m+2.4*size);if(k>=.74||txt.length<14)return _bn(txt,Math.max(size*.55,size*k),ty,display);
+  let at=-1;for(const sep of[' · ',': ',' — ',' ']){let best=-1;let i=txt.indexOf(sep);while(i>0){if(best<0||Math.abs(i-txt.length/2)<Math.abs(best-txt.length/2))best=i;i=txt.indexOf(sep,i+1)}if(best>0){at=best;var sl=sep.length;break}}
+  if(at<0)return _bn(txt,size*Math.max(.55,k),ty,display);
+  const a=txt.slice(0,at).trim(),b=txt.slice(at+sl).trim();ctx.font=fnt(size);const mw=Math.max(ctx.measureText(a).width,ctx.measureText(b).width);
+  const s=size*Math.min(1,A/(mw+2.4*size)),dy=s*.95/T;_bn(a,s,ty-dy,display);_bn(b,s,ty+dy,display)}}
+
+/* --- 3. кнопки окна внизу — CSS выше (.mcard>.row:last-child липнет к нижнему краю) --- */
+
+/* --- 4. подсветка клеток: где поставленный боец достанет до дороги — зелёным, остальные свободные — тонкой рамкой --- */
+let UIHI=null;
+function uiSegD(px,py,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy;let t=l?((px-a[0])*dx+(py-a[1])*dy)/l:0;t=Math.max(0,Math.min(1,t));return Math.hypot(px-a[0]-dx*t,py-a[1]-dy*t)}
+function uiBuildHi(T){if(!G||!G.buildType||G.over||tutCells())return;const ty=TYPES[G.buildType]||{};const r=Math.max(1.6,ty.range||0);
+  const key=G.buildType+'|'+G.towers.length+'|'+G.wave+'|'+Math.floor(G.t*2)+'|'+r;
+  if(!UIHI||UIHI.key!==key){const good=[],free=[];const P=(G.map.world||[]).map(p=>p.pts);
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(!canBuild(x,y))continue;let d=99;for(const pts of P)for(let i=0;i+1<pts.length;i++){d=Math.min(d,uiSegD(x+.5,y+.5,pts[i],pts[i+1]));if(d<r)break}
+      (d<r-.15?good:free).push([x,y])}
+    UIHI={key,good,free}}
+  ctx.strokeStyle='rgba(255,255,255,.16)';ctx.lineWidth=1;for(const[x,y]of UIHI.free)ctx.strokeRect(x*T+2.5,y*T+2.5,T-5,T-5);
+  const a=.75+.25*Math.sin(G.t*3.2);ctx.fillStyle=`rgba(150,240,120,${.17*a})`;ctx.strokeStyle=`rgba(190,255,160,${.7*a})`;ctx.lineWidth=1.6;
+  for(const[x,y]of UIHI.good){ctx.fillRect(x*T+3,y*T+3,T-6,T-6);ctx.strokeRect(x*T+3,y*T+3,T-6,T-6)}}
+
+/* --- 5. короткие имена: когда бойцов 7–8 и полоска тесная, вместо скрытого полного имени — одно слово, цена без «монет» --- */
+const UISN={'Реактивная установка':'Ракеты','Зенитный комплекс':'ПВО','Минное поле':'Мины','Колючая проволока':'Колючка','Рогатки и ров':'Ров',
+  'Оператор рельсовой винтовки':'Рельсотрон','Стазис-поле':'Стазис','Гаусс-орудие':'Гаусс','Операторы роя':'Рой','Центр управления боем':'Центр',
+  'Дриада-хранительница':'Дриада','Лучник-стрелец':'Лучник','Дракон-союзник':'Дракон','Клон-гвардеец':'Клон','Вся Хронодружина':'Дружина',
+  'Ведунья Аглая':'Аглая','Электрофорная машина':'Электрофор','Паровая пожарная машина':'Пожарка','Хронодружинник':'Хронодруж.','Рунный камень':'Руна',
+  'Электромагнитная пушка':'ЭМ-пушка','Плазменная мортира':'Мортира','Гравитационная пушка':'Гравит','Сингулярная ловушка':'Дыра','Рой перехватчиков':'Рой','Гравиловушка':'Гравит','Электросеть':'Сеть','Гравитурель двора':'Турель','Мотострелок':'Пехота'};
+function uiShort(n){n=(n||'').trim();if(UISN[n])return UISN[n];let s=n.replace(/[«»"]/g,'').split(/ (?:с|со|в|и|на|из|для) /)[0].trim();
+  let w=s.split(/\s+/);while(w.length>1&&/(ый|ий|ой|ая|яя|ое|ее|ые|ие|ья)$/.test(w[0]))w.shift();s=w[0]||n;
+  const h=s.match(/^([^-]+)-([^-\d][^-]*)$/);if(h)s=h[2];return s.charAt(0).toUpperCase()+s.slice(1)}
+{const _rb=renderBar;renderBar=function(){const r=_rb.apply(this,arguments);try{for(const c of $('bar').children){const b=c.querySelector('b');if(b&&!c.querySelector('.sn')){const e=document.createElement('em');e.className='sn';e.textContent=uiShort(b.textContent);b.after(e)}
+    const sm=c.querySelector('small');if(sm&&!sm.querySelector('.mw'))sm.innerHTML=sm.innerHTML.replace(/ (монет[а-я]*)$/,'<span class="mw"> $1</span>')}}catch(e){}return r}}
+
+/* --- 6. подсказка «в казне N монет — поставь бойца», если монеты лежат без дела: только в бою, после 14 с без покупок, не чаще раза в 40 с и не больше двух раз за уровень --- */
+const UIG={g:null,sig:'',t0:0,last:-99,n:0};
+setInterval(()=>{try{if(!uiFight()||G.paused){return}if(UIG.g!==G){UIG.g=G;UIG.sig='';UIG.t0=G.t;UIG.last=-99;UIG.n=0}
+  const sig=G.towers.length+'|'+G.towers.reduce((a,t)=>a+(t.lvl||1),0);if(sig!==UIG.sig){UIG.sig=sig;UIG.t0=G.t}
+  if(G.wave<1||UIG.n>=2||G.t-UIG.t0<14||G.t-UIG.last<40)return;if(G.C===1&&G.L===1&&!save.tut)return;
+  let mc=1e9;for(const k of ORDER){const b=TYPES[k];if(G.C<b.from)continue;const c=costOf(k);if(c>0&&c<mc)mc=c}if(mc>=1e9)return;
+  const g=Math.floor(G.gold);if(g<Math.max(100,mc*2))return;if(uiBusy()||uiT2()||UIQ.length)return;
+  UIG.last=G.t;UIG.n++;toast2(`💰 В казне ${g} монет лежит без дела — ${G.towers.length?'поставь ещё бойца или усиль старого':'поставь бойца у дороги'}.`);
+  for(const c of $('bar').children){c.classList.remove('uiPulse');void c.offsetWidth;c.classList.add('uiPulse')}setTimeout(()=>{for(const c of $('bar').children)c.classList.remove('uiPulse')},3200)}catch(e){}},500);
+/*}UI1*/
 window.__appPause=()=>{try{if(G&&!G.over&&!G.paused&&!$('game').hidden&&$('modal').hidden)$('bPause').click();if(AC&&AC.state==='running')AC.suspend()}catch(e){}};
 window.__appResume=()=>{try{if(AC&&!save.mute&&!_adOn)AC.resume()}catch(e){}};
 window.__appBack=()=>{try{
