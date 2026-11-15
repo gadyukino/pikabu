@@ -228,6 +228,8 @@ body.compact .sys3{order:5}
 body.compact .where b{min-height:2.3em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 body.compact #bMenu{grid-column:span 2}
 
+.modal .mcard{box-sizing:border-box}
+
 </style>
 
 <div id="app">
@@ -667,7 +669,8 @@ function store(){try{localStorage.setItem(KEY,JSON.stringify(save))}catch(e){}_p
 let save=loadSave();
 const FORGE=[{id:'blade',n:'Острые клинки',d:'+5% к урону ближнего боя',ic:'⚔'},{id:'bow',n:'Тугие тетивы',d:'+5% к урону стрелков',ic:'🏹'},{id:'spell',n:'Крепкие заговоры',d:'маги: корни и чары держатся на 10% дольше',ic:'✨'},
  {id:'trap',n:'Хитрые ловушки',d:'ловушки сильнее замедляют и больнее жгут',ic:'⛓'},{id:'purse',n:'Общинная казна',d:'+10 монет в начале каждого уровня',ic:'💰'},{id:'wall',n:'Крепкий частокол',d:'околица выдерживает на один прорыв больше',ic:'🛡'},
- {id:'carp',n:'Артель плотников',d:'постройка защитников на 3% дешевле',ic:'🪵'},{id:'siege',n:'Тяжёлые снаряды',d:'камнемёт и подрывник: +5% к площади',ic:'💥',from:3},{id:'sky',n:'Небесные гарпуны',d:'+5% к урону по небу',ic:'🦅',from:5}];
+ {id:'carp',n:'Артель плотников',d:'постройка защитников на 3% дешевле',ic:'🪵'},{id:'siege',n:'Тяжёлые снаряды',d:'камнемёт и подрывник: +5% к площади',ic:'💥',from:3},{id:'sky',n:'Небесные гарпуны',d:'+5% к урону по небу',ic:'🦅',from:5},
+ {id:'drill',n:'Подмастерья',d:'улучшение защитников на поле на 5% дешевле',ic:'🛠'},{id:'spirit',n:'Гусли-самогуды',d:'«Гадюкина сила» длится на 1 секунду дольше',ic:'🎶'}];
 const FCOST=[3,5,8];
 const fl=id=>(save.forge&&save.forge[id])||0;
 const starsTotal=()=>Object.values(save.stars||{}).reduce((a,b)=>a+b,0)+(save.xstars||0);
@@ -931,7 +934,7 @@ function tStats(t){
   if(t.type!=='banner')for(const o of G.towers)if(o.type==='banner'&&Math.hypot(o.x-t.x,o.y-t.y)<=TYPES.banner.range*(1+.1*(o.lvl-1))+.01)buff=Math.max(buff,TYPES.banner.buff+.08*(o.lvl-1));
   const sk1=G.buffUntil>G.t;return{dmg:(b.dmg||0)*m*(1+buff)*(sk1?1.3:1),range:b.range*(1+.1*(t.lvl-1))*(G.chal==='fog'?.8:G.chal==='night'?.88:1),rate:(b.rate||0)*(1+.1*(t.lvl-1))*(sk1?1.2:1),buff,burn:t.type==='smola'?1+.06*fl('trap'):1,slow:b.slow?Math.max(.4,b.slow-.07*(t.lvl-1)-.03*fl('trap')):0,root:b.root?Math.max(.15,b.root-.06*(t.lvl-1)):0,rootT:b.rootT?b.rootT*(1+.1*fl('spell'))+.2*(t.lvl-1):0};
 }
-const upCost=t=>Math.round(costOf(t.type)*.75*t.lvl);
+const upCost=t=>Math.round(costOf(t.type)*.75*t.lvl*(1-.05*fl('drill')));
 const sellVal=t=>Math.round(t.spent*.7);
 const layer=e=>e.fly||'ground';
 let ZG9=1;  // доля урона зенитки по наземным (гл. IX). В первой части .7 — задаётся в блоке ACH1, который части 2 и 3 вырезают: их баланс не меняется
@@ -3718,7 +3721,7 @@ function hud(force){
 
 $('bWave').onclick=callWave;
 const SK1CD=45,SK2CD=70;
-function useSk1(){if(!G||G.over||G.sk1>0||G.wave===0)return;G.sk1=SK1CD;G.buffUntil=G.t+8;sfx('cheer');G.fx.push({type:'text',x:9,y:1.6,txt:'Гадюкина сила!',life:2,col:'#f0c060'});skillUI()}
+function useSk1(){if(!G||G.over||G.sk1>0||G.wave===0)return;G.sk1=SK1CD;G.buffUntil=G.t+8+fl('spirit');sfx('cheer');G.fx.push({type:'text',x:9,y:1.6,txt:'Гадюкина сила!',life:2,col:'#f0c060'});skillUI()}
 function useSk2(){if(!G||G.over||G.C<5||G.sk2>0||!G.enemies.length)return;G.sk2=SK2CD;G.flash=.25;sfx('bell');G.bell=G.t;for(const e of G.enemies){if(e.dead)continue;hit(e,e.max*(e.role==='boss'?.08:.2)+e.armor)}G.fx.push({type:'text',x:9,y:1.6,txt:'Набат! Всё Гадюкино — в бой!',life:2.2,col:'#f0c060'});skillUI()}
 function skillUI(){if(!G)return;const b1=$('bSk1'),b2=$('bSk2');b1.hidden=false;b2.hidden=G.C<5;
   const p1=G.sk1>0?100-G.sk1/SK1CD*100:100,p2=G.sk2>0?100-G.sk2/SK2CD*100:100;b1.style.setProperty('--p',p1+'%');b2.style.setProperty('--p',p2+'%');
@@ -6777,7 +6780,7 @@ const GUIDE=[
   <li><span><b>Весёлые случайности.</b> Иногда коза Марта бодает чудище, по краю поля бежит кот Васька (поймайте!) или падает посылка из Галактики. В главе II гоблин-перебежчик оставляет у околицы мешочек с монетами, в главе III маркитантка Бурга кормит наших пирожками, а в главе IV гном-подмастерье по ошибке смазывает нашего защитника — 5 секунд он бьёт чаще. Всегда в вашу пользу.</span></li></ol>`],
  ['Кузня',`<ol class="tips">
   <li><span><b>Звёзды — деньги кузнеца.</b> Кузнец Прохор Тридцать Седьмой куёт улучшения за звёзды. У каждого три ступени: 3, 5 и 8 звёзд.</span></li>
-  <li><span><b>Девять улучшений:</b> клинки, тетивы, заговоры, ловушки, казна, частокол, плотники, а позже — снаряды (с главы III) и небесные гарпуны (с главы V).</span></li>
+  <li><span><b>Одиннадцать улучшений:</b> клинки, тетивы, заговоры, ловушки, казна, частокол, плотники, подмастерья (улучшать защитников дешевле), гусли-самогуды («Гадюкина сила» дольше), а позже — снаряды (с главы III) и небесные гарпуны (с главы V).</span></li>
   <li><span><b>Ерошка.</b> Робот-уборщик раздувает горн, пока вы смотрите рекламу: три ролика — одна звезда, не больше трёх звёзд в день.</span></li>
   <li><span><b>Купцы.</b> После победы заезжий купец может пожертвовать 50 монет на следующий уровень, если посмотреть его рекламу. Не чаще раза в 15 минут.</span></li></ol>`],
 ];
