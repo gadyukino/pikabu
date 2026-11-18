@@ -543,7 +543,7 @@ function makeLife(C){if(P1ON(C))return p1Life(C);const L=[],o=[17,4];
   if(C===8)L.push({k:'chibi',kind:'grenad8',x0:17.35,x1:18.4,y:6.95,sp:.45,ph:0,u:.32},{k:'chibi',kind:'baba8',x0:18.5,x1:19.6,y:7.2,sp:.35,ph:2,u:.3},{k:'chibi',kind:'posad8',x0:17.4,x1:18.2,y:7.4,sp:.3,ph:4,u:.3});
   if(C>=9){const pc=C===9?['#4a4e44','#3a3a40','#5a4a3a']:['#2a4570','#9b3d2e','#3a3a3a','#c8a24a'];for(let i=0;i<4;i++)L.push({k:'folk',x0:17.1+i*.6,x1:17.6+i*.6,y:i%2?6.95:6.14,sp:.25+i*.05,ph:i*1.7,col:pc[i%pc.length],skirt:i===1||i===3,C:Math.min(C,9),sz:.15})}
   if(C===9)L.push({k:'lane',x0:16.9,x1:20.1,y:6.62,dir:1,sp:.16,ph:0,spr:'mil',kind:'van'},{k:'lane',x0:16.9,x1:20.1,y:6.38,dir:-1,sp:.14,ph:.5,spr:'mil2',kind:'van'});
-  if(C===10){L.push({k:'lane',x0:16.9,x1:20.1,y:6.64,dir:1,sp:.32,ph:0,spr:'car_red'},{k:'lane',x0:16.9,x1:20.1,y:6.64,dir:1,sp:.32,ph:.5,gw:1},{k:'lane',x0:16.9,x1:20.1,y:6.38,dir:-1,sp:.27,ph:.2,spr:'car_blue'},{k:'lane',x0:16.9,x1:20.1,y:6.38,dir:-1,sp:.27,ph:.7,spr:'car_white',kind:'pol'})}
+  if(C===10){L.push({k:'lane',x0:16.9,x1:20.1,y:6.64,dir:1,sp:.32,ph:0,spr:'car_red'},{k:'lane',x0:16.9,x1:20.1,y:6.64,dir:1,sp:.32,ph:.5,gw:!window.P1NOGW},{k:'lane',x0:16.9,x1:20.1,y:6.38,dir:-1,sp:.27,ph:.2,spr:'car_blue'},{k:'lane',x0:16.9,x1:20.1,y:6.38,dir:-1,sp:.27,ph:.7,spr:'car_white',kind:'pol'})}
   return L}
 function ambient(c,t,T){
   const snow=CH[G.C-1].gt==='snow';
@@ -1419,7 +1419,7 @@ function p1Spire(a){if(a.spire!==undefined)return a.spire;a.spire=null;try{const
       const L=(d[i*4]+d[i*4+1]+d[i*4+2])/3;if(!(near&&L<50))d[i*4+3]=0}
     c.putImageData(D,0,0);a.spire={cv,x:x0,h}}catch(e){}return a.spire}
 /* жизнь города: машины в обе стороны по трём улицам, прохожие по тротуарам (artLife второй части) */
-function p1Life10(C){const b=p1CityBox(1),L=[],r=rng(C*911+(G?G.L:1)),CARS=['karta-avto-getwola','karta-avto-sedan','karta-avto-taksi','karta-avto-skoraya','karta-avto-dizelyobus'],P=['karta-pesh-1_shag','karta-pesh-2_shag','karta-pesh-3_shag'],hr=P1CITY.road/2;
+function p1Life10(C){const b=p1CityBox(1),L=[],r=rng(C*911+(G?G.L:1)),CARS=['karta-avto-pereezd','karta-avto-sedan','karta-avto-taksi','karta-avto-skoraya','karta-avto-dizelyobus'],P=['karta-pesh-1_shag','karta-pesh-2_shag','karta-pesh-3_shag'],hr=P1CITY.road/2;
   b.ys.forEach((y,si)=>{const spR=.05+r()*.02,spL=.05+r()*.02,p0=r();
     for(let i=0;i<3;i++){const dir=i%2?-1:1;L.push({k:'p1',kind:'car',key:CARS[(si*2+i)%CARS.length],xa:b.x+.15,xb:b.x+b.w+.1,y:y+(dir>0?.36:-.02),dir,sp:dir>0?spR:spL,ph:dir>0?p0+i/4:r()})}
     for(let i=0;i<2;i++){const dir=i?-1:1;L.push({k:'p1',kind:'walk2',key:P[(si+i)%3],xa:b.x+.15,xb:b.x+b.w-.1,y:i?y-hr-.06:y-hr-.02,dir,sp:.02+r()*.015,ph:r(),h:.42})}});
@@ -1569,9 +1569,9 @@ const P1COV={1:{cx:1290,smoke:[[749,262],[1173,226],[1771,254]],walk:['peshehod-
   10:{cx:1250,smoke:[],walk:[]}};
 /* гл. X «Ночь тысячелетия»: салют, вертолёт с винтами, прохожие по набережной (ступни 490), машины с крутящимися колёсами по проспекту (550), кот Васька.
    Положения и размеры — из preview.html Codex (полотно 2400×600) */
-const P1C10={walk:['oblozhka-pesh-ofis_shag','peshehod-stas_shag','oblozhka-pesh-babushka_shag','peshehod-kurer-getwola_shag','oblozhka-pesh-devushka_shag','peshehod-ded-vnuk_shag'],
-  /* рост машин — видимая высота, как COVER_VH во второй части (одна машина одного роста во всех главах), ×P1CK; шуточные из Гадюкино 2 (12.11: getwola крупнее, легковые мельче; затем getwola 50→45 — каплю меньше) */
-  cars:[['avto-dizelyobus',62],['avto-getwola',45],['avto-shaurma',68],['avto-taksi',36],['avto-evakuator',56],['avto-dacha',62],['avto-policiya',32],['avto-traktor',46],
+const P1C10={walk:['oblozhka-pesh-ofis_shag','peshehod-stas_shag','oblozhka-pesh-babushka_shag','peshehod-kurer-kot_shag','oblozhka-pesh-devushka_shag','peshehod-ded-vnuk_shag'],
+  /* рост машин — видимая высота, как COVER_VH во второй части (одна машина одного роста во всех главах), ×P1CK; шуточные из Гадюкино 2 (12.11: getwola крупнее, легковые мельче; 16.11 getwola заменён грузовиком «Переезды») */
+  cars:[['avto-dizelyobus',62],['avto-pereezd',52],['avto-shaurma',68],['avto-taksi',36],['avto-evakuator',56],['avto-dacha',62],['avto-policiya',32],['avto-traktor',46],
     ['avto-avtoshkola',38],['avto-muzej',58],['avto-shesterka',34],['avto-skoraya',46],['avto-sedan',31],['avto-vnedorozhnik',37]]};
 const P1CK=2.1;  // как COVER_CAR_K второй части (12.11: 1,15 — машинки мелкие)
 function p1Cover10(S,t){const c=S.cv.getContext('2d'),s=S.s,X=x=>S.ox+x*s,Y=y=>S.oy+y*s,M=(P1MAN[10]||{}).cover||{},MW=P1MAN[10]||{};
@@ -1619,6 +1619,23 @@ function p1CoverFrame(S,t){P1C=S.C;if(S.C===10){const c=S.cv.getContext('2d');c.
   items.sort((a,b)=>a[0]-b[0]).forEach(o=>o[1]());
   if(CF.snow){c.fillStyle='rgba(255,255,255,.85)';for(let i=0;i<70;i++){const sp=14+(i*37)%23,yy=((t*sp+i*97)%640)-20,xx=(i*211.3+Math.sin(t*.8+i)*18+t*6)%2400;c.beginPath();c.arc(X(xx),Y(yy),(1.2+(i%3)*.7)*s*2,0,7);c.fill()}return}  // снегопад вместо бликов: река подо льдом
   c.fillStyle='rgba(255,255,255,.7)';for(let i=0;i<16;i++){const fl=(Math.sin(t*3+i*2.1)+1)/2;c.fillRect(X((i*151.7+t*9)%2400),Y(566+(i*13)%26),(10*fl+3)*s,Math.max(1,2*s))}}
+/* экран победы после вожака глав I, II и X — картинка перехода с медленным наездом вместо салюта (17.11, Gadyukino-art/perehody).
+   Во второй–четвёртой частях P1ART пустой — p1Vic молчит и работает обычный showVictory. */
+const P1VIC={1:'perehod-1-2',2:'perehod-2-3',3:'perehod-3-4',4:'perehod-4-5',5:'perehod-5-6',10:'perehod-final'};
+function p1Vic(sub,done){const C=G&&G.C,n=P1VIC[C],a=n&&A['p1.'+C+'.'+n];if(!a||!a.u)return false;
+  if(!$('p1VicCss')){const st=document.createElement('style');st.id='p1VicCss';st.textContent=
+    '#victory.pic{background:#0c0507;place-items:end center;overflow:hidden}#victory.pic #fw{display:none}'+
+    '#vicPic{position:absolute;top:0;right:0;bottom:0;left:0;background:center 42%/cover no-repeat;transform-origin:50% 42%;animation:p1vz 18s ease-out both}'+
+    '#vicPic:after{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(rgba(12,4,6,0),rgba(12,4,6,.78))}'+
+    '@keyframes p1vz{from{transform:scale(1);opacity:0}6%{opacity:1}to{transform:scale(1.09);opacity:1}}'+
+    '#victory.pic .vic{gap:6px;padding:8px 16px 14px}#victory.pic .vic h2{font-size:clamp(36px,7vw,80px);text-shadow:0 0 18px rgba(0,0,0,.7),0 3px 0 #5a3a10}'+
+    '#victory.pic .vic p{font-size:17px;text-shadow:0 1px 4px #000,0 0 10px #000}'+
+    '@media (max-height:520px){#victory.pic .vic{grid-template-columns:auto auto;align-items:center;column-gap:18px;padding:6px 16px 10px}#victory.pic .vic h2{font-size:40px;grid-row:span 2}#victory.pic .vic p{font-size:15px}}'+
+    '@media (prefers-reduced-motion:reduce){#vicPic{animation:none}}';document.head.appendChild(st)}
+  const v=$('victory');let bg=$('vicPic');if(!bg){bg=document.createElement('div');bg.id='vicPic';v.insertBefore(bg,v.firstChild)}
+  bg.style.backgroundImage='url('+a.u+')';bg.style.animation='none';void bg.offsetWidth;bg.style.animation='';
+  fwId++;v.classList.add('pic');v.hidden=false;$('vicSub').textContent=sub;const btn=$('vicGo');btn.hidden=true;setTimeout(()=>{btn.hidden=false;btn.focus()},1800);
+  fanfare();btn.onclick=()=>{v.hidden=true;v.classList.remove('pic');bg.style.backgroundImage='';done()};return true}
 /*}P1CODE*/
 function buildBg(){bgVer++;
   const T=G.T,ch=CH[G.C-1];bg.width=W*T*dpr;bg.height=H*T*dpr;const c=bg.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);
@@ -3545,7 +3562,7 @@ function pop(){if(save.mute||!AC)return;sfxInit();const t=AC.currentTime+.01,p=a
   for(let i=0;i<10;i++)aN(t+.15+Math.random()*.7,{d:.015,f:aRnd(3000,8000),q:2,v:aRnd(.03,.09),pan:p+aRnd(-.3,.3),rv:.5})}
 /* ---------- victory: fireworks ---------- */
 let fwId=0;
-function showVictory(sub,done){
+function showVictory(sub,done){if(p1Vic(sub,done))return;
   const v=$('victory');v.hidden=false;$('vicSub').textContent=sub;const btn=$('vicGo');btn.hidden=true;setTimeout(()=>{btn.hidden=false;btn.focus()},1800);
   const cvs=$('fw'),d=Math.min(2,window.devicePixelRatio||1),w=window.innerWidth,h=window.innerHeight;cvs.width=w*d;cvs.height=h*d;cvs.style.width=w+'px';cvs.style.height=h+'px';
   const c=cvs.getContext('2d');c.setTransform(d,0,0,d,0,0);const id=++fwId,rockets=[],parts=[],cols=['#ffd66b','#ff6b4a','#ffffff','#7fe08a','#7fb8ff','#ff9ad5','#ffb347'];
@@ -3687,7 +3704,7 @@ function paintScene(cnv,K){if(coverScene(cnv,K))return;const C=VIS[K-1];if(p1Cov
       const g=c.createRadialGradient(x+h*.025,yr-h*.145,0,x+h*.025,yr-h*.145,h*.07);g.addColorStop(0,'rgba(255,224,150,.75)');g.addColorStop(1,'rgba(255,224,150,0)');c.fillStyle=g;c.beginPath();c.arc(x+h*.025,yr-h*.145,h*.07,0,7);c.fill();c.fillStyle='#ffe9b0';c.beginPath();c.arc(x+h*.025,yr-h*.145,h*.008,0,7);c.fill()}
     const bx=X(.3),bw2=h*.3,bt=yr-h*.27;c.strokeStyle='#2a3240';c.lineWidth=Math.max(2,h*.008);line(c,bx-bw2*.3,bt+h*.12,bx-bw2*.3,yr-h*.03);line(c,bx+bw2*.3,bt+h*.12,bx+bw2*.3,yr-h*.03);
     c.fillStyle='#0e1420';c.fillRect(bx-bw2/2-2,bt-2,bw2+4,h*.12+4);const bg2=c.createLinearGradient(bx-bw2/2,0,bx+bw2/2,0);bg2.addColorStop(0,'#ef1b24');bg2.addColorStop(1,'#c40510');c.fillStyle=bg2;c.fillRect(bx-bw2/2,bt,bw2,h*.12);
-    c.fillStyle='#ffffff';c.font=`800 ${h*.05}px 'Alegreya Sans',sans-serif`;c.textAlign='center';c.textBaseline='middle';c.font=`800 ${h*.06}px 'Alegreya Sans',sans-serif`;c.fillText('getwola.ru',bx,bt+h*.062);c.textAlign='left'}
+    c.fillStyle='#ffffff';c.font=`800 ${h*.05}px 'Alegreya Sans',sans-serif`;c.textAlign='center';c.textBaseline='middle';if(window.P1NOGW){c.font=`800 ${h*.036}px 'Alegreya Sans',sans-serif`;c.fillText('НЕ ЧИТАЙ ЗА РУЛЁМ',bx,bt+h*.042,bw2*.9);c.font=`700 ${h*.03}px 'Alegreya Sans',sans-serif`;c.fillText('ну вот, прочитал',bx,bt+h*.086,bw2*.9)}else{c.font=`800 ${h*.06}px 'Alegreya Sans',sans-serif`;c.fillText('getwola.ru',bx,bt+h*.062)}c.textAlign='left'}
   const ty=h*.845,rightTree=C<=3;
   if(snow){[[.04,ty,1],[.13,ty-h*.01,.8],[.975,ty,.85]].forEach(([fx,fy,k],i)=>{if(C===9&&i===2)return;life.push({k:'vtree',kind:'firS',x:u(w*fx),y:u(fy),W:h*.17*k,seed:i+1})})}
   else{const tk=ch.decor==='steppe'?['bush1','bush3','bush2']:ch.decor==='autumn'?['tree4','tree3','tree4']:ch.decor==='fir'?['tree2','tree1','tree2']:['tree3','tree1','tree3'];
@@ -3720,7 +3737,7 @@ function paintScene(cnv,K){if(coverScene(cnv,K))return;const C=VIS[K-1];if(p1Cov
   life.sort((p,q)=>(p.y||0)-(q.y||0));
   if(C===10){const k0=h*.0047;
     [['sedan','#e9ecee','pol'],['hatch','#b8322a'],['suv','#1e2228'],['sedan','#8a9198'],['sedan','#f2c230','taxi']].forEach(([ty,col,liv],i)=>life.push({k:'car2',type:ty,col,liv,y:u(yr-h*.006),dir:-1,sp:.045,ph:i/5,sc:k0*.9}));
-    [['bus','#1d5fb8'],['van','#e30613','gw'],['sedan','#2a5c9a'],['van','#f3f5f5','amb'],['hatch','#e9ecee'],['suv','#4a5a3a']].forEach(([ty,col,liv],i)=>life.push({k:'car2',type:ty,col,liv,y:u(yr+h*.026),dir:1,sp:.052,ph:i/6,sc:k0}))}
+    [['bus','#1d5fb8'],['van',window.P1NOGW?'#3a8fd8':'#e30613',window.P1NOGW?'':'gw'],['sedan','#2a5c9a'],['van','#f3f5f5','amb'],['hatch','#e9ecee'],['suv','#4a5a3a']].forEach(([ty,col,liv],i)=>life.push({k:'car2',type:ty,col,liv,y:u(yr+h*.026),dir:1,sp:.052,ph:i/6,sc:k0}))}
   if(K%2===0)warOverlay(c,w,h,K);const sc={cv:cnv,off,anim,life,w,h,T,d,C,snow,night,river};const i=SCN.findIndex(o=>o.cv===cnv);if(i>=0)SCN[i]=sc;else SCN.push(sc);
   drawSceneFrame(sc,performance.now()/1000);
 }
@@ -6325,6 +6342,28 @@ setInterval(()=>{try{if(!uiFight()||G.paused){return}if(UIG.g!==G){UIG.g=G;UIG.s
   const g=Math.floor(G.gold);if(g<Math.max(100,mc*2))return;if(uiBusy()||uiT2()||UIQ.length)return;
   UIG.last=G.t;UIG.n++;toast2(`💰 В казне ${g} монет лежит без дела — ${G.towers.length?'поставь ещё бойца или усиль старого':'поставь бойца у дороги'}.`);
   for(const c of $('bar').children){c.classList.remove('uiPulse');void c.offsetWidth;c.classList.add('uiPulse')}setTimeout(()=>{for(const c of $('bar').children)c.classList.remove('uiPulse')},3200)}catch(e){}},500);
+
+/* --- 7. телефон (18.11): меньше закрытого поля ---
+   а) поставил бойца — выбор снимается: гаснут сетка клеток и подсказка внизу (иначе висят и во время волны);
+   б) подсказка о выбранном бойце — одна строка и прячется через 4 с;
+   в) пока идёт обучение, нижняя подсказка о бойце не показывается (кроме окна выбранного бойца с «Усилить»);
+   г) подсказка обучения, указывающая на кнопку слева, стоит справа от левой колонки, а не над кнопкой поверх счётчиков. */
+{const st=document.createElement('style');st.textContent=`
+body.compact .dock.uiOne{flex-wrap:nowrap;max-width:min(520px,62vw)}body.compact .dock.uiOne>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+body.compact .dock.uiHide,body.compact.ui-tut .dock.uiOne{display:none}`;document.head.appendChild(st)}
+const UIP={n:-1,g:null,t:0};
+function uiCmp(){return document.body.classList.contains('compact')}
+window.addEventListener('pointerdown',()=>{UIP.g=G;UIP.n=G?G.towers.length:-1},true);
+window.addEventListener('pointerdown',ev=>{try{if(!G||G!==UIP.g||ev.target!==cv||!uiCmp())return;
+  if(G.buildType&&G.towers.length>UIP.n){G.buildType=null;G.hover=null;renderBar();dock()}}catch(e){}});
+{const _dk=dock;dock=function(){const r=_dk.apply(this,arguments);try{const d=$('dock');const one=!!(uiCmp()&&G&&G.buildType&&!G.sel);
+  d.classList.toggle('uiOne',one);d.classList.remove('uiHide');clearTimeout(UIP.t);
+  if(one){const k=G.buildType;UIP.t=setTimeout(()=>{if(G&&G.buildType===k&&!G.sel)d.classList.add('uiHide')},4000)}}catch(e){}return r}}
+{const _tt=tutTick;tutTick=function(){const r=_tt.apply(this,arguments);try{const b=$('tutB'),on=!!(b&&!b.hidden&&uiCmp());
+  document.body.classList.toggle('ui-tut',on);if(!on)return r;
+  const tg=document.querySelector('.hud .tutglow'),hud=document.querySelector('#game .hud');if(!tg||!hud)return r;
+  const rc=tg.getBoundingClientRect(),hr=hud.getBoundingClientRect(),VH=document.documentElement.clientHeight,h=b.offsetHeight;
+  const y=Math.max(8,Math.min(VH-h-8,rc.top+rc.height/2-h/2));b.style.left=hr.right+10+window.scrollX+'px';b.style.top=y+window.scrollY+'px'}catch(e){}return r}}
 /*}UI1*/
 window.__appPause=()=>{try{if(G&&!G.over&&!G.paused&&!$('game').hidden&&$('modal').hidden)$('bPause').click();if(AC&&AC.state==='running')AC.suspend()}catch(e){}};
 window.__appResume=()=>{try{if(AC&&!save.mute&&!_adOn)AC.resume()}catch(e){}};
