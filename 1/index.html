@@ -351,7 +351,7 @@ for(const k in P1ART)A[k]=P1ART[k];
 
 
 /* ---------- подгрузка глав (веб-сборка, tools/web/split.mjs части 1) ---------- */
-var WLSRC={"3":"art1/glava-3.f7d07507.js","4":"art1/glava-4.0a837231.js","5":"art1/glava-5.1627176e.js","6":"art1/glava-6.2387e268.js","7":"art1/glava-7.398b3f84.js","8":"art1/glava-8.c81aee23.js","9":"art1/glava-9.a484173b.js","10":"art1/glava-10.6dae7e93.js"},WLST={},WLN=10,WLL=7;
+var WLSRC={"3":"art1/glava-3.f7d07507.js","4":"art1/glava-4.0a837231.js","5":"art1/glava-5.1627176e.js","6":"art1/glava-6.2387e268.js","7":"art1/glava-7.398b3f84.js","8":"art1/glava-8.7b32a7a0.js","9":"art1/glava-9.cdad8984.js","10":"art1/glava-10.6dae7e93.js"},WLST={},WLN=10,WLL=7;
 window.gdkReg=function(K,art,mus){const s=WLST[K]||(WLST[K]={});if(s.reg)return;s.reg=true;s.art=art;s.mus=mus;if(s.cb)s.cb()};
 function wlImg(a){return new Promise(res=>{a.img=new Image();a.img.onload=a.img.onerror=()=>res();a.img.src=a.u})}
 const wlBase=Promise.all(Object.values(A).map(wlImg));
@@ -587,7 +587,7 @@ function tStats(t){
 const upCost=t=>Math.round(costOf(t.type)*.75*t.lvl);
 const sellVal=t=>Math.round(t.spent*.7);
 const layer=e=>e.fly||'ground';
-let ZG9=1;  // доля урона зенитки по наземным (гл. IX). В первой части .7 — задаётся в блоке ACH1, который части 2 и 3 вырезают: их баланс не меняется
+let ZG9=1;  // доля урона зенитки по наземным (гл. IX). В первой части .3 (19.11; было .7) — задаётся в блоке ACH1, который части 2 и 3 вырезают: их баланс не меняется
 function canHit(b,e){const l=layer(e);if(b===TYPES.zenit&&G&&G.C===9&&l==='ground')return true;if(!b.hits[l])return false;if(l==='ground'&&b.inf&&e.kind!=='man')return false;return true}
 
 /* balance (stage 22): tuned with a simulated greedy player over all 70 levels */
@@ -1552,7 +1552,7 @@ function p1CoverFrame(S,t){P1C=S.C;if(S.C===10){const c=S.cv.getContext('2d');c.
   c.fillStyle='rgba(255,255,255,.7)';for(let i=0;i<16;i++){const fl=(Math.sin(t*3+i*2.1)+1)/2;c.fillRect(X((i*151.7+t*9)%2400),Y(566+(i*13)%26),(10*fl+3)*s,Math.max(1,2*s))}}
 /* экран победы после вожака глав I, II и X — картинка перехода с медленным наездом вместо салюта (17.11, Gadyukino-art/perehody).
    Во второй–четвёртой частях P1ART пустой — p1Vic молчит и работает обычный showVictory. */
-const P1VIC={1:'perehod-1-2',2:'perehod-2-3',3:'perehod-3-4',4:'perehod-4-5',5:'perehod-5-6',6:'perehod-6-7',7:'perehod-7-8',10:'perehod-final'};
+const P1VIC={1:'perehod-1-2',2:'perehod-2-3',3:'perehod-3-4',4:'perehod-4-5',5:'perehod-5-6',6:'perehod-6-7',7:'perehod-7-8',8:'perehod-8-9',9:'perehod-9-10',10:'perehod-final'};
 function p1Vic(sub,done){const C=G&&G.C,n=P1VIC[C],a=n&&A['p1.'+C+'.'+n];if(!a||!a.u)return false;
   if(!$('p1VicCss')){const st=document.createElement('style');st.id='p1VicCss';st.textContent=
     '#victory.pic{background:#0c0507;place-items:end center;overflow:hidden}#victory.pic #fw{display:none}'+
@@ -4888,7 +4888,7 @@ function frame(ts){try{ambTick()}catch(e){}const dt=Math.min(.05,(ts-last)/1000|
 window.addEventListener('resize',()=>{if(G)fit()});
 /* Android app hooks (RuStore build) */
 /*ACH1{*/window.P1NOGW=1;  /* 16.11: в первой части нет getwola — запасная (кодовая) обложка гл. X без неё; части 2–4 блок вырезают */
-ZG9=.7;for(const c of[6,7,8,9,10])BAL_C[c]*=1.03;{const sp0=spawn;spawn=function(){const n=G.enemies.length,v=sp0.apply(this,arguments);if(G.L===5&&G.C>=8)for(let i=n;i<G.enemies.length;i++){G.enemies[i].hp*=1.09;G.enemies[i].max*=1.09}return v}}/* 13.11: ур. 5 гл. VIII–X крепче на 9% */{const bw0=buildWave,K5={2:.1,3:.1,4:.15,5:.15,6:.15};buildWave=function(C,L,w,nW){const a=bw0(C,L,w,nW),k=L===5&&K5[C];if(!k)return a;const n=Math.round(a.length*k),o=a.slice();for(let j=0;j<n;j++){const i=Math.floor((j+.5)*a.length/n);o.splice(i+j+1,0,a[i])}return o}}/* 13.11: ур. 5 — врагов больше: гл. II–III на 10%, IV–VI на 15% (копии через равные промежутки) *//* 12.11: враги с гл. VI крепче на 3% (только первая часть: ACH1 части 2 и 3 вырезают) *//* 12.11: зенитка гл. IX по наземным слабее — у бота давала 70% урона главы (tools/bal/sim1.py) */
+ZG9=.3;for(const c of[6,7,8,9,10])BAL_C[c]*=1.03;{const sp0=spawn;spawn=function(){const n=G.enemies.length,v=sp0.apply(this,arguments);if(G.L===5&&G.C>=8)for(let i=n;i<G.enemies.length;i++){G.enemies[i].hp*=1.09;G.enemies[i].max*=1.09}return v}}/* 13.11: ур. 5 гл. VIII–X крепче на 9% */{const bw0=buildWave,K5={2:.1,3:.1,4:.15,5:.15,6:.15};buildWave=function(C,L,w,nW){const a=bw0(C,L,w,nW),k=L===5&&K5[C];if(!k)return a;const n=Math.round(a.length*k),o=a.slice();for(let j=0;j<n;j++){const i=Math.floor((j+.5)*a.length/n);o.splice(i+j+1,0,a[i])}return o}}/* 13.11: ур. 5 — врагов больше: гл. II–III на 10%, IV–VI на 15% (копии через равные промежутки) *//* 12.11: враги с гл. VI крепче на 3% (только первая часть: ACH1 части 2 и 3 вырезают) *//* 12.11: зенитка гл. IX по наземным слабее — у бота давала 70% урона главы (tools/bal/sim1.py) */
 /* ---------- достижения (07.11, по образцу части 2) ----------
    15 достижений на всю игру (10.11: было 10, добавлены half, clean, chap3x3, forgeAll, few). Медаль «За оборону Гадюкина» вручает староста Ерофей: 1–4 — бронза, 5–9 — серебро, 10–14 — золото, 15 — золотая звезда
    (11.11: ровные ступени по решению пользователя).
