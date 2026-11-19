@@ -1621,7 +1621,7 @@ function p1CoverFrame(S,t){P1C=S.C;if(S.C===10){const c=S.cv.getContext('2d');c.
   c.fillStyle='rgba(255,255,255,.7)';for(let i=0;i<16;i++){const fl=(Math.sin(t*3+i*2.1)+1)/2;c.fillRect(X((i*151.7+t*9)%2400),Y(566+(i*13)%26),(10*fl+3)*s,Math.max(1,2*s))}}
 /* экран победы после вожака глав I, II и X — картинка перехода с медленным наездом вместо салюта (17.11, Gadyukino-art/perehody).
    Во второй–четвёртой частях P1ART пустой — p1Vic молчит и работает обычный showVictory. */
-const P1VIC={1:'perehod-1-2',2:'perehod-2-3',3:'perehod-3-4',4:'perehod-4-5',5:'perehod-5-6',10:'perehod-final'};
+const P1VIC={1:'perehod-1-2',2:'perehod-2-3',3:'perehod-3-4',4:'perehod-4-5',5:'perehod-5-6',6:'perehod-6-7',7:'perehod-7-8',10:'perehod-final'};
 function p1Vic(sub,done){const C=G&&G.C,n=P1VIC[C],a=n&&A['p1.'+C+'.'+n];if(!a||!a.u)return false;
   if(!$('p1VicCss')){const st=document.createElement('style');st.id='p1VicCss';st.textContent=
     '#victory.pic{background:#0c0507;place-items:end center;overflow:hidden}#victory.pic #fw{display:none}'+
@@ -6236,6 +6236,25 @@ function frame(ts){try{ambTick()}catch(e){}const dt=Math.min(.05,(ts-last)/1000|
   requestAnimationFrame(frame)}
 window.addEventListener('resize',()=>{if(G)fit()});
 /* Android app hooks (RuStore build) */
+/*FOLD1{*/
+/* 19.11: летопись на карточке главы сворачивается, как в части 4 — у каждой главы свой выбор (save.storyFold = {глава:1}).
+   Кнопка «Свернуть ▴» / «📜 Летопись» всегда в правом верхнем углу .story (112×28, 16 px от края), во всех главах одинаково.
+   На закрытых карточках (замок «Откроется после…») кнопки нет — там угол занят замком. Часть 4 вырезает блок (patchRe 'fold1'): там своё в orn4. */
+{const st1=document.createElement('style');st1.textContent=`.chap .story{position:relative}
+.chap .fold1{position:absolute;top:16px;right:16px;z-index:5;box-sizing:border-box;width:112px;height:28px;padding:0 8px;font-weight:600;font-size:13px;line-height:1;font-family:inherit;text-align:center;white-space:nowrap;
+ background:rgba(30,6,12,.82);border:1px solid rgba(217,171,75,.45);border-radius:6px;color:var(--gold);cursor:pointer;box-shadow:0 3px 6px rgba(0,0,0,.4)}
+.chap .fold1:hover{border-color:var(--gold)}
+.chap .story.f1:not(.fold) .storybox{margin-top:30px}
+.chap .story.fold .storybox{display:none}
+@media (max-width:760px){.chap .story.f1{padding-top:44px}.chap .story.f1:not(.fold) .storybox{margin-top:0}.chap .story.f1.fold{padding:0;min-height:52px}}`;document.head.appendChild(st1)}
+{const _rm=renderMenu;renderMenu=function(){_rm();try{fold1()}catch(e){}}}
+function fold1(){if(typeof save.storyFold!=='object'||!save.storyFold)save.storyFold={};
+  document.querySelectorAll('#chapters article.chap').forEach(el=>{const cv=el.querySelector('canvas.scene'),st=el.querySelector('.story');if(!cv||!st||st.querySelector('.fold1')||el.querySelector('.lockbadge'))return;
+    const C=+cv.dataset.c,fb=document.createElement('button');fb.type='button';fb.className='fold1';st.classList.add('f1');
+    const upd=()=>{const f=!!save.storyFold[C];st.classList.toggle('fold',f);fb.textContent=f?'📜 Летопись':'Свернуть ▴';fb.setAttribute('aria-label',f?'Развернуть летопись':'Свернуть летопись')};
+    fb.onclick=e=>{e.stopPropagation();if(save.storyFold[C])delete save.storyFold[C];else save.storyFold[C]=1;store();upd()};
+    st.appendChild(fb);upd()})}
+/*}FOLD1*/
 
 /*UI1{*/
 /* ---------- телефонный интерфейс (15.11): одна всплывашка за раз, название главы в ширину поля, кнопки окна внизу,

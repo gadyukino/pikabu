@@ -4973,6 +4973,25 @@ function openAch(){achCheck();const n=achN(),t=achTier(n),a=achS();
 .achToast b{display:block;color:var(--gold);font-size:17px}.achToast i{display:block;font-style:normal;font-size:13px;color:#f0e4c9}
 @media (max-height:520px){.aintro{display:none}.ahead{margin:0 0 6px}.atiers{grid-template-columns:repeat(4,1fr)}.atier{padding:4px 6px}.atier small{display:none}.alist{max-height:none}}`;document.head.appendChild(s)}
 /*}ACH1*/
+/*FOLD1{*/
+/* 19.11: летопись на карточке главы сворачивается, как в части 4 — у каждой главы свой выбор (save.storyFold = {глава:1}).
+   Кнопка «Свернуть ▴» / «📜 Летопись» всегда в правом верхнем углу .story (112×28, 16 px от края), во всех главах одинаково.
+   На закрытых карточках (замок «Откроется после…») кнопки нет — там угол занят замком. Часть 4 вырезает блок (patchRe 'fold1'): там своё в orn4. */
+{const st1=document.createElement('style');st1.textContent=`.chap .story{position:relative}
+.chap .fold1{position:absolute;top:16px;right:16px;z-index:5;box-sizing:border-box;width:112px;height:28px;padding:0 8px;font-weight:600;font-size:13px;line-height:1;font-family:inherit;text-align:center;white-space:nowrap;
+ background:rgba(30,6,12,.82);border:1px solid rgba(217,171,75,.45);border-radius:6px;color:var(--gold);cursor:pointer;box-shadow:0 3px 6px rgba(0,0,0,.4)}
+.chap .fold1:hover{border-color:var(--gold)}
+.chap .story.f1:not(.fold) .storybox{margin-top:30px}
+.chap .story.fold .storybox{display:none}
+@media (max-width:760px){.chap .story.f1{padding-top:44px}.chap .story.f1:not(.fold) .storybox{margin-top:0}.chap .story.f1.fold{padding:0;min-height:52px}}`;document.head.appendChild(st1)}
+{const _rm=renderMenu;renderMenu=function(){_rm();try{fold1()}catch(e){}}}
+function fold1(){if(typeof save.storyFold!=='object'||!save.storyFold)save.storyFold={};
+  document.querySelectorAll('#chapters article.chap').forEach(el=>{const cv=el.querySelector('canvas.scene'),st=el.querySelector('.story');if(!cv||!st||st.querySelector('.fold1')||el.querySelector('.lockbadge'))return;
+    const C=+cv.dataset.c,fb=document.createElement('button');fb.type='button';fb.className='fold1';st.classList.add('f1');
+    const upd=()=>{const f=!!save.storyFold[C];st.classList.toggle('fold',f);fb.textContent=f?'📜 Летопись':'Свернуть ▴';fb.setAttribute('aria-label',f?'Развернуть летопись':'Свернуть летопись')};
+    fb.onclick=e=>{e.stopPropagation();if(save.storyFold[C])delete save.storyFold[C];else save.storyFold[C]=1;store();upd()};
+    st.appendChild(fb);upd()})}
+/*}FOLD1*/
 /*JOKE1{*/
 /* ---------- шутки первых секунд (глава I, уровень 1, только в первый раз; 10.11.2026) ----------
    1) первый поставленный боец: «А платить будут?» — староста Ерофей: «Будут. Лисами!»
