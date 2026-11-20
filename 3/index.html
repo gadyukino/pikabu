@@ -949,7 +949,7 @@ function tStats(t){
 const upCost=t=>Math.round(costOf(t.type)*.75*t.lvl*(1-.05*fl('drill')));
 const sellVal=t=>Math.round(t.spent*.7);
 const layer=e=>e.fly||'ground';
-let ZG9=1;  // доля урона зенитки по наземным (гл. IX). В первой части .7 — задаётся в блоке ACH1, который части 2 и 3 вырезают: их баланс не меняется
+let ZG9=1;  // доля урона зенитки по наземным (гл. IX). В первой части .3 (19.11; было .7) — задаётся в блоке ACH1, который части 2 и 3 вырезают: их баланс не меняется
 function canHit(b,e){const l=layer(e);if(b===TYPES.zenit&&G&&G.C===9&&l==='ground')return true;if(!b.hits[l])return false;if(l==='ground'&&b.inf&&e.kind!=='man')return false;return true}
 
 /* balance (stage 22): tuned with a simulated greedy player over all 70 levels */
@@ -1921,7 +1921,7 @@ function p1CoverFrame(S,t){P1C=S.C;if(S.C===10){const c=S.cv.getContext('2d');c.
   c.fillStyle='rgba(255,255,255,.7)';for(let i=0;i<16;i++){const fl=(Math.sin(t*3+i*2.1)+1)/2;c.fillRect(X((i*151.7+t*9)%2400),Y(566+(i*13)%26),(10*fl+3)*s,Math.max(1,2*s))}}
 /* экран победы после вожака глав I, II и X — картинка перехода с медленным наездом вместо салюта (17.11, Gadyukino-art/perehody).
    Во второй–четвёртой частях P1ART пустой — p1Vic молчит и работает обычный showVictory. */
-const P1VIC={1:'perehod-1-2',2:'perehod-2-3',3:'perehod-3-4',4:'perehod-4-5',5:'perehod-5-6',6:'perehod-6-7',7:'perehod-7-8',10:'perehod-final'};
+const P1VIC={1:'perehod-1-2',2:'perehod-2-3',3:'perehod-3-4',4:'perehod-4-5',5:'perehod-5-6',6:'perehod-6-7',7:'perehod-7-8',8:'perehod-8-9',9:'perehod-9-10',10:'perehod-final'};
 function p1Vic(sub,done){const C=G&&G.C,n=P1VIC[C],a=n&&A['p1.'+C+'.'+n];if(!a||!a.u)return false;
   if(!$('p1VicCss')){const st=document.createElement('style');st.id='p1VicCss';st.textContent=
     '#victory.pic{background:#0c0507;place-items:end center;overflow:hidden}#victory.pic #fw{display:none}'+
@@ -7041,6 +7041,87 @@ window.addEventListener('pointerdown',ev=>{try{if(!G||G!==UIP.g||ev.target!==cv|
   const tg=document.querySelector('.hud .tutglow'),hud=document.querySelector('#game .hud');if(!tg||!hud)return r;
   const rc=tg.getBoundingClientRect(),hr=hud.getBoundingClientRect(),VH=document.documentElement.clientHeight,h=b.offsetHeight;
   const y=Math.max(8,Math.min(VH-h-8,rc.top+rc.height/2-h/2));b.style.left=hr.right+10+window.scrollX+'px';b.style.top=y+window.scrollY+'px'}catch(e){}return r}}
+
+/* --- 8. приближение поля на телефоне (21.11) ---
+   На телефоне поле 20×12 упирается в высоту экрана, клетка ~32 px (≈5 мм) — мелко. В компактном режиме поле рисуется крупнее
+   (клетка ≈50 px), лишнее уходит за края, поле двигается пальцем; два пальца — приблизить/отдалить; кнопка 🔍 — 1× / обычное / крупно.
+   Касание без сдвига срабатывает при отпускании: настоящий pointerdown по полю перехватывается и повторяется сам (UZ.syn),
+   поэтому все обработчики поля во всех частях работают как раньше. За краем видимой части — красные стрелки к врагам. */
+{const st=document.createElement('style');st.textContent=`
+body.uiZoom .field{position:relative!important;display:block!important}
+body.uiZoom #cv{position:absolute!important;left:0;top:0;max-width:none!important;max-height:none!important;transform-origin:0 0;will-change:transform}
+#uiZoomB{display:none;position:absolute;right:6px;top:6px;z-index:4;min-width:44px;height:36px;padding:0 8px;border-radius:18px;border:1px solid var(--gold-dim);background:rgba(28,12,14,.72);color:var(--gold);font:700 13px 'Alegreya Sans',sans-serif;line-height:34px;cursor:pointer}
+body.compact #uiZoomB{display:block}`;document.head.appendChild(st)}
+const UZ={k:1,x:0,y:0,on:false,T0:0,p:new Map(),pan:null,pinch:null,syn:null,user:null,tutP:null};
+try{const v=parseFloat(localStorage.getItem('gdkZoom'));if(v>0)UZ.user=v}catch(e){}
+function uzFld(){return document.querySelector('.field')}
+/* обычное приближение: клетка ≈50 px; UZ.user — выбор игрока (кнопка или два пальца), 1 = без приближения */
+function uzAuto(T0){return Math.max(1,Math.min(2.6,50/T0))}
+function uzClamp(){const f=uzFld();if(!f||!UZ.on)return;const fw=f.clientWidth,fh=f.clientHeight,cw=W*G.T,chh=H*G.T;
+  UZ.x=cw<=fw?(fw-cw)/2:Math.min(0,Math.max(fw-cw,UZ.x));UZ.y=chh<=fh?(fh-chh)/2:Math.min(0,Math.max(fh-chh,UZ.y))}
+function uzPos(s){uzClamp();cv.style.transform='translate3d('+Math.round(UZ.x)+'px,'+Math.round(UZ.y)+'px,0)'+(s&&s!==1?' scale('+s+')':'')}
+{const _fit=fit;fit=function(){
+  const oT=G&&UZ.on?G.T:0,f0=uzFld(),cx=f0?(f0.clientWidth/2-UZ.x):0,cy=f0?(f0.clientHeight/2-UZ.y):0;
+  const _bb=buildBg;let need=false;buildBg=function(){need=true};
+  try{_fit.apply(this,arguments)}finally{buildBg=_bb}
+  if(!G)return;const cmp=uiCmp(),T0=G.T;UZ.T0=T0;
+  let k=cmp?(UZ.user!=null?UZ.user:uzAuto(T0)):1;const T=Math.round(T0*k);
+  if(cmp&&T>T0+1){
+    /* полотно крупнее — меньше dpr, чтобы кадр не тяжелел: не больше ~1,6 Мп (как без приближения при dpr 2 — кадр не тяжелее) */
+    dpr=Math.max(1,Math.min(dpr,Math.sqrt(1.6e6/(W*T*H*T))));G.T=T;
+    cv.style.width=W*T+'px';cv.style.height=H*T+'px';cv.width=Math.round(W*T*dpr);cv.height=Math.round(H*T*dpr);
+    const was=UZ.on;UZ.on=true;document.body.classList.add('uiZoom');
+    if(was&&oT){UZ.x=f0.clientWidth/2-cx*T/oT;UZ.y=f0.clientHeight/2-cy*T/oT}else{UZ.x=-1e9;UZ.y=(f0.clientHeight-H*T)/2;UZ.x=(f0.clientWidth-W*T)/2}
+    uzPos()}
+  else{UZ.on=false;document.body.classList.remove('uiZoom');cv.style.transform=''}
+  uzBtn();_bb()}}
+function uzBtn(){let b=$('uiZoomB');const f=uzFld();if(!f)return;if(!b){b=document.createElement('button');b.id='uiZoomB';b.type='button';
+    b.addEventListener('click',ev=>{ev.stopPropagation();const a=uzAuto(UZ.T0||32),cur=UZ.on?G.T/UZ.T0:1;
+      /* по кругу: обычное → крупно → весь план */
+      const nx=cur<1.05?a:cur<a*1.15?Math.min(2.6,a*1.35):1;UZ.user=nx;try{localStorage.setItem('gdkZoom',String(nx))}catch(e){}fit()});f.appendChild(b)}
+  const cur=UZ.on?G.T/UZ.T0:1;b.textContent=cur<1.05?'🔍 весь план':'🔍 ×'+(Math.round(cur*10)/10).toString().replace('.',',')}
+/* касания по полю */
+window.addEventListener('pointerdown',ev=>{if(ev===UZ.syn||ev.target!==cv||!UZ.on||!G)return;ev.stopPropagation();
+  try{cv.setPointerCapture(ev.pointerId)}catch(e){}
+  UZ.p.set(ev.pointerId,{x:ev.clientX,y:ev.clientY,x0:ev.clientX,y0:ev.clientY,t:ev.pointerType});
+  if(UZ.p.size===1){UZ.pan={id:ev.pointerId,ox:UZ.x,oy:UZ.y,moved:false}}
+  else if(UZ.p.size===2){const[a,b]=[...UZ.p.values()];const f=uzFld().getBoundingClientRect();
+    UZ.pan=null;UZ.pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,s:1,mx:(a.x+b.x)/2-f.left,my:(a.y+b.y)/2-f.top,ox:UZ.x,oy:UZ.y}}},true);
+window.addEventListener('pointermove',ev=>{const q=UZ.p.get(ev.pointerId);if(!q)return;q.x=ev.clientX;q.y=ev.clientY;
+  if(UZ.pinch&&UZ.p.size>=2){const[a,b]=[...UZ.p.values()];const pc=UZ.pinch,T=G.T,lo=UZ.T0/T,hi=UZ.T0*2.6/T;
+    pc.s=Math.max(lo,Math.min(hi,Math.hypot(a.x-b.x,a.y-b.y)/pc.d0));UZ.x=pc.mx-(pc.mx-pc.ox)*pc.s;UZ.y=pc.my-(pc.my-pc.oy)*pc.s;
+    cv.style.transform='translate3d('+Math.round(UZ.x)+'px,'+Math.round(UZ.y)+'px,0) scale('+pc.s+')';return}
+  const pn=UZ.pan;if(!pn||pn.id!==ev.pointerId)return;const dx=q.x-q.x0,dy=q.y-q.y0;
+  if(!pn.moved&&Math.hypot(dx,dy)>(q.t==='mouse'?5:10))pn.moved=true;
+  if(pn.moved){UZ.x=pn.ox+dx;UZ.y=pn.oy+dy;uzPos();if(G)G.hover=null}},true);
+function uzUp(ev){const q=UZ.p.get(ev.pointerId);if(!q)return;UZ.p.delete(ev.pointerId);
+  if(UZ.pinch){if(UZ.p.size<2){const pc=UZ.pinch;UZ.pinch=null;UZ.pan=null;
+      if(Math.abs(pc.s-1)>.03){const k=Math.max(1,Math.min(2.6,G.T*pc.s/UZ.T0));UZ.user=k;try{localStorage.setItem('gdkZoom',String(k))}catch(e){}
+        /* пересобрать поле в новом размере, держа точку между пальцами на месте */
+        const f=uzFld(),fw=f.clientWidth,fh=f.clientHeight;const gx=(fw/2-UZ.x)/(G.T*pc.s),gy=(fh/2-UZ.y)/(G.T*pc.s);
+        UZ.on=false;fit();if(UZ.on){UZ.x=fw/2-gx*G.T;UZ.y=fh/2-gy*G.T;uzPos()}}
+      else uzPos()}
+    return}
+  const pn=UZ.pan;UZ.pan=null;if(!pn||pn.id!==ev.pointerId||pn.moved||ev.type==='pointercancel')return;
+  /* просто касание — повторяем нажатие для игры */
+  try{const e2=new PointerEvent('pointerdown',{bubbles:true,cancelable:true,clientX:q.x0,clientY:q.y0,pointerId:ev.pointerId,pointerType:q.t,isPrimary:true});
+    UZ.syn=e2;cv.dispatchEvent(e2)}catch(e){}finally{UZ.syn=null}}
+window.addEventListener('pointerup',uzUp,true);window.addEventListener('pointercancel',uzUp,true);
+/* обучение: подсвеченные клетки должны быть видны — подвозим к ним поле */
+setInterval(()=>{try{if(!UZ.on||!G||UZ.pan||UZ.pinch)return;const tc=tutCells();if(!tc||!tc.length){UZ.tutP=null;return}
+  const key=tc.map(c=>c[0]+','+c[1]).join(' ');if(UZ.tutP===key)return;UZ.tutP=key;
+  let sx=0,sy=0;for(const c of tc){sx+=c[0]+.5;sy+=c[1]+.5}const f=uzFld();UZ.x=f.clientWidth/2-sx/tc.length*G.T;UZ.y=f.clientHeight/2-sy/tc.length*G.T;uzPos()}catch(e){}},300);
+/* стрелки к врагам за краем видимой части */
+{const _dr=draw;draw=function(){const r=_dr.apply(this,arguments);try{if(!UZ.on||!G||G.over||arguments.length)return r;const f=uzFld();if(!f)return r;
+  const T=G.T,x0=-UZ.x,y0=-UZ.y,x1=x0+f.clientWidth,y1=y0+f.clientHeight,m=T*.32,a=.65+.35*Math.sin(G.t*6);
+  ctx.save();ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle=`rgba(225,50,40,${a})`;ctx.strokeStyle='rgba(30,8,8,.8)';ctx.lineWidth=1.5;
+  for(const e of G.enemies){if(e.dead)continue;const ex=e.x*T,ey=e.y*T;if(ex>=x0&&ex<=x1&&ey>=y0&&ey<=y1)continue;
+    const px=Math.max(x0+m,Math.min(x1-m,ex)),py=Math.max(y0+m,Math.min(y1-m,ey)),an=Math.atan2(ey-py,ex-px);
+    ctx.beginPath();ctx.moveTo(px+Math.cos(an)*m,py+Math.sin(an)*m);ctx.lineTo(px+Math.cos(an+2.4)*m*.8,py+Math.sin(an+2.4)*m*.8);ctx.lineTo(px+Math.cos(an-2.4)*m*.8,py+Math.sin(an-2.4)*m*.8);ctx.closePath();ctx.fill();ctx.stroke()}
+  ctx.restore()}catch(e){}return r}}
+/* часть 3 ставит всплывающую строку по рамке полотна (toastPos); при приближении полотно шире экрана — ставим по видимому полю */
+if(typeof toastPos==='function'){const _tp=toastPos;toastPos=function(){const r=_tp.apply(this,arguments);try{if(UZ.on&&!$('game').hidden){const t=$('toast2'),f=uzFld().getBoundingClientRect();
+  if(t&&f.width){t.style.left=(f.left+f.width/2)+'px';t.style.top=(f.top+6)+'px';t.style.maxWidth=Math.max(200,f.width-16)+'px'}}}catch(e){}return r}}
 /*}UI1*/
 window.__appPause=()=>{try{if(G&&!G.over&&!G.paused&&!$('game').hidden&&$('modal').hidden)$('bPause').click();if(AC&&AC.state==='running')AC.suspend()}catch(e){}};
 window.__appResume=()=>{try{if(AC&&!save.mute&&!_adOn)AC.resume()}catch(e){}};
