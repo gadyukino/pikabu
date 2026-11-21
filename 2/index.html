@@ -6274,7 +6274,9 @@ body.compact .bar.tight .card canvas{grid-row:span 2;width:26px;height:26px}
 body.compact .bar.tight .card .sn{display:block;font-style:normal;font-weight:700;font-size:9px;letter-spacing:-.01em;line-height:1.1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:inherit}
 body.compact .bar.tight .card small .mw{display:none}
 /* часть 2: значки «земля/воздух» в тесной полоске — мельче и в нижний правый угол, чтобы имя шло во всю ширину */
-body.compact .bar.tight .card{padding-right:3px!important}body.compact .bar.tight .card .lay{top:auto!important;bottom:2px;right:2px!important;flex-direction:row;transform:scale(.75);transform-origin:bottom right}
+/* 21.11: на узком телефоне значки наезжали на цену — теперь отдельной строкой под ценой */
+body.compact .bar.tight .card{padding-right:3px!important}body.compact .bar.tight .card .lay{position:static!important;grid-column:1/-1;justify-self:end;flex-direction:row;gap:2px!important;margin:1px 0 0;transform:none}
+body.compact .bar.tight .card .lay img,body.compact .bar.tight .card .lay i{width:11px!important;height:11px!important}
 body.compact .where b{text-wrap:balance}
 .card.uiPulse:not(.poor){animation:uiPulse 1s ease-in-out 3}
 @keyframes uiPulse{50%{border-color:var(--gold);box-shadow:0 0 0 2px rgba(217,171,75,.55),0 0 14px rgba(217,171,75,.45)}}
