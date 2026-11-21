@@ -5494,7 +5494,7 @@ function artCoverFrame(S,t){const c=S.cv.getContext('2d'),C=S.C,s=S.s,M=S.M,X=x=
   if(CV.peg&&HAx('oblozhka-pegas',C)){const k=AK('oblozhka-pegas',C),sk=M.sky||[.1,.3],span=S.w+300*s,ph=(t*42*s)%(span*1.5),x=ph-150*s;if(x<span){const y=Y(640*(sk[0]+(sk[1]-sk[0])*(.5+.5*Math.sin(t*.23))))+Math.sin(t*2.2)*6*s;spC(c,k,t*7,x,y,150*s)}}
   if(M.peek&&HA(PK,C)){const ph=t%11;if(ph>6){const fi=ph>7.6&&ph<9.6?1:0,al=Math.min(1,(ph-6)*3,(11-ph)*3);c.save();c.globalAlpha=al;sp2(c,AK(PK,C),fi,X(M.peek[0]),Y(M.peek[1]),M.peek[2]*s,false,1);c.restore()}}
   if(CV.ogonki)for(let i=0;i<4;i++){const k=AK('oblozhka-ogonek',C);const x=X(140+i*170+Math.sin(t*.5+i*2)*40),y=Y(440+Math.sin(t*.9+i*1.7)*30-(i%2)*40),p=.6+.4*Math.sin(t*3+i);c.save();c.globalCompositeOperation='lighter';spC(c,k,0,x,y,46*s*p,0,.85);c.restore()}
-  if(M.kot){const[kx,ky,kh]=M.kot,ph=(t*2.5)%10,fi=ph>9.6?2:Math.floor(t*.8)%2;sp2(c,AK('oblozhka-kot',C),fi,X(kx),Y(ky),kh*s,false,.92)}
+  {const KT=KOT3[C]||M.kot;if(KT){const[kx,ky,kh]=KT,ph=(t*2.5)%10,fi=ph>9.6?2:Math.floor(t*.8)%2;sp2(c,AK('oblozhka-kot',C),fi,X(kx),Y(ky),kh*s,false,.92)}}
   /* жители обложки (09.11: CV.sz — поправка роста у тех, у кого голову «съели» шлем/оружие над ней, CV.k — все крупнее (город на фоне крупнее), CV.yb — своя линия шага; 08.11: +15%, канва 110 px, коза 71 px на фоне 640): вправо идут по ближней полосе, влево — по дальней; в каждой полосе одна скорость и равный шаг, дальнюю рисуем первой (07.11) */
   const yb=CV.yb||M.walkBaseline||585,span=S.w+200*s,lanes=CV.lanes.map(([dir,dy,vv,list])=>[dir,yb+dy,vv,list]);
   if(CV.kati&&HA('oblozhka-perekati-pole',C)){const span2=S.w+400*s,x=((t*60*s)%(span2*1.6))-100*s;if(x<span2)spC(c,AK('oblozhka-perekati-pole',C),t*8,x,Y(yb-14-Math.abs(Math.sin(t*3))*14),44*s,0)}
@@ -5521,6 +5521,8 @@ function dym3(c,key,fi,x,yF,h,flip,t){const a=A[key];if(!a||!a.img)return;const 
   c.restore()}
 
 /* слои обложек глав: жители по двум полосам [направление, сдвиг от линии шага, скорость, [картинка, фаза]], мельница */
+/* 21.11: кот на обложках III–VII сидел в воздухе — своё место [x ступней, y ступней, рост] в пикселях фона 1536×640 */
+const KOT3={3:[1105,337,54],4:[1207,322,54],5:[1162,392,48],6:[1225,465,50],7:[750,530,55]};
 const COV3={1:{mill:'oblozhka-melnica_krylya',millV:.7,ogonki:1,lanes:[[-1,-5,19,[['oblozhka-pesh-baba_shag',0],['oblozhka-pesh-vedunya_shag',.5],['oblozhka-koza_shag',.5-90/1600]]],[1,6,21,[['oblozhka-pesh-ded_shag',0],['oblozhka-pesh-paren_shag',.5]]]]},
  4:{flag:1,k:1.1,sz:{'oblozhka-pesh-latnik_shag':1.27,'oblozhka-pesh-ork_shag':1.15,'oblozhka-pesh-pishchalnik_shag':1.06},par:1,lanes:[[-1,-5,19,[['oblozhka-pesh-alhimik_shag',0],['oblozhka-pesh-ork_shag',.5]]],[1,6,21,[['oblozhka-pesh-latnik_shag',0],['oblozhka-pesh-pishchalnik_shag',.5],['oblozhka-koza_shag',.5-90/1600]]]]},
  6:{flag:1,k:1.1,sz:{'oblozhka-pesh-ork-general_shag':1.17,'oblozhka-pesh-rycar_shag':1.09,'oblozhka-pesh-elfiyka-arhimag_shag':1.06},mast:1,drakon:1,lanes:[[-1,-5,19,[['oblozhka-pesh-elfiyka-arhimag_shag',0],['oblozhka-pesh-gnom-shtucernik_shag',.5]]],[1,6,21,[['oblozhka-pesh-rycar_shag',0],['oblozhka-pesh-ork-general_shag',.5],['oblozhka-koza_shag',.5-90/1600]]]]},
