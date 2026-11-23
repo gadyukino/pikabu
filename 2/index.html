@@ -5085,21 +5085,23 @@ setInterval(()=>{try{
       Сделано через TYPES[k].from (G.C везде 10): закрытый боец получает from=99, весь код части 1 его просто не показывает.
    2) Перед первым боем короткое вступление (две фразы); полный текст — по кнопке «Предыстория».
    3) Конец сессии: на победе — кто откроется дальше / какая глава следующая; на поражении и «втором шансе» — кто прорвался и кем его бить. */
-const UNL2={ratnik:1,drone:1,strel:2,zenit:3,pushka:4,smola:5,banner:6,univ:7};
+// 23.11 вечер (решение пользователя): «Спарка» с I-1, реактивная установка с I-2, мины с I-3, штаб с I-4 — к I-4 открыты все
+const UNL2={ratnik:1,drone:1,univ:1,strel:2,pushka:2,zenit:3,smola:3,banner:4};
 const UNL2_TXT={strel:'Бьёт издалека и метко — лучший против пехоты.',zenit:'Сбивает дроны и самолёты. Штурмовиков достаёт только ПВО.',
   pushka:'Залп по площади, пробивает броню колонн.',smola:'Замедляет и подрывает наземных врагов на дороге.',banner:'Усиливает бойцов вокруг себя.',
   univ:'Понемногу бьёт всех — землю, дроны и самолёты. Слабее специалистов, зато закрывает дыры.'};
 function lock2(k){return !save.all&&!!G&&G.K===1&&(UNL2[k]||1)>G.L}
 for(const k of ORDER){const f0=TYPES[k].from;Object.defineProperty(TYPES[k],'from',{configurable:true,get(){return lock2(k)?99:f0},set(v){}})}
 function newUnit2(K,L){if(K!==1||L<2||save.all||!G)return;save.unl2=save.unl2||{};
-  const k=ORDER.find(q=>UNL2[q]===L&&!save.unl2[q]);if(!k)return;save.unl2[k]=1;store();if((save.stars||{})['1-'+L])return;  // уровень уже выигран раньше — бойца он знает
-  const b=TYPES[k],card=$('bar').children[ORDER.filter(q=>G.C>=TYPES[q].from).indexOf(k)],src=card&&card.querySelector('canvas');
+  const ks=ORDER.filter(q=>UNL2[q]===L&&!save.unl2[q]);if(!ks.length)return;for(const k of ks)save.unl2[k]=1;store();if((save.stars||{})['1-'+L])return;  // уровень уже выигран раньше — бойцов он знает
+  const vis=ORDER.filter(q=>G.C>=TYPES[q].from),cards=ks.map(k=>$('bar').children[vis.indexOf(k)]);
   const was=G.paused;G.paused=true;$('bPause').textContent='Дальше';
-  modal(`<h2>Новый боец!</h2><div class="nu2"><canvas id="nu2c" width="160" height="160"></canvas><div><b>${tN(b)}</b><span>${costOf(k)} монет</span><p>${UNL2_TXT[k]||b.tip}</p></div></div>
+  modal(`<h2>${ks.length>1?'Новые бойцы!':'Новый боец!'}</h2>${ks.map((k,i)=>`<div class="nu2"><canvas id="nu2c${i}" width="160" height="160"></canvas><div><b>${tN(TYPES[k])}</b><span>${costOf(k)} монет</span><p>${UNL2_TXT[k]||TYPES[k].tip}</p></div></div>`).join('')}
     <div class="row"><button class="btn primary" id="nu2Go">В бой!</button></div>`);
-  if(src)try{$('nu2c').getContext('2d').drawImage(src,0,0,160,160)}catch(e){}
+  if(ks.length>1)$('mcard').classList.add('nu2m');
+  cards.forEach((c,i)=>{const src=c&&c.querySelector('canvas');if(src)try{$('nu2c'+i).getContext('2d').drawImage(src,0,0,160,160)}catch(e){}});
   $('nu2Go').onclick=()=>{closeModal();if(G&&!G.over&&!was){G.paused=false;$('bPause').textContent='Пауза'}
-    if(card){card.classList.add('tutglow');setTimeout(()=>card.classList.remove('tutglow'),9000)}}}
+    for(const c of cards)if(c){c.classList.add('tutglow');setTimeout(()=>c.classList.remove('tutglow'),9000)}}}
 {const _sl0=startLevel0;startLevel0=function(K,L){_sl0(K,L);try{newUnit2(K,L)}catch(e){}}}
 
 const PRE2_SHORT={1:'Гадюкино стало мегаполисом, а в парке стоит памятник старосте Ерофею с вилами. Но Враждебный Альянс десять лет копил танки и обиду — и вот его колонны снова идут к городу!'};
@@ -5113,7 +5115,7 @@ function tip2(){const l=G&&G.lk2;if(!l)return'';let c=null;for(const k in l)if(!
   const nm=TIP2[c].filter(k=>G.C>=TYPES[k].from).map(k=>tN(TYPES[k]));if(!nm.length)return'';
   return`<p class="tip2">💡 ${TIP2_T[c]}. Против них: ${nm.join(', ')}.${c==='high'?' Ставьте ПВО ближе к городу — самолёты летят к нему напрямую.':''}</p>`}
 function next2(K,L){
-  if(K===1&&L<LPC){const k=ORDER.find(q=>UNL2[q]===L+1);if(k&&!(save.unl2||{})[k])return`<p class="next2">🔓 На следующем уровне — новый боец: <b>${tN(TYPES[k])}</b></p>`}
+  if(K===1&&L<LPC){const ks=ORDER.filter(q=>UNL2[q]===L+1&&!(save.unl2||{})[q]);if(ks.length)return`<p class="next2">🔓 На следующем уровне — ${ks.length>1?'новые бойцы':'новый боец'}: <b>${ks.map(k=>tN(TYPES[k])).join(' и ')}</b></p>`}
   if(L===LPC&&K<OPEN_K){const ch=CH2[K];return`<p class="next2">Дальше — глава ${ROMAN[K]} «${ch.set}». Враг: ${ch.foe}</p>`}
   return''}
 {const _md3=modal;modal=function(h){try{if(G&&G.over&&G.lives>0&&h.includes('id="mNext"')&&!h.includes('class="next2"')){const t=next2(G.K,G.L);if(t)h=/<div class="stars">[^<]*<\/div><p>[^<]*<\/p>/.test(h)?h.replace(/<div class="stars">[^<]*<\/div><p>[^<]*<\/p>/,m=>m+t):h.replace('<div class="row"><button class="btn primary" id="mNext">',m=>t+m)}
@@ -5122,7 +5124,7 @@ document.head.appendChild(Object.assign(document.createElement('style'),{textCon
  '.nu2{display:flex;gap:14px;align-items:center;text-align:left;margin:6px 0 4px}.nu2 canvas{width:110px;height:110px;flex:none;background:rgba(255,255,255,.06);border-radius:12px}'+
  '.nu2 b{font-size:1.15em;color:#e8c56a;display:block}.nu2 span{opacity:.75;font-size:.9em}.nu2 p{margin:6px 0 0}'+
  '.tip2,.next2{margin:8px 0;padding:6px 10px;border-radius:8px;background:rgba(232,197,106,.12);text-align:left}'+
- '@media (max-height:480px){.nu2 canvas{width:80px;height:80px}}'}));
+ '.nu2m .nu2{margin:2px 0}@media (max-height:480px){.nu2 canvas{width:80px;height:80px}.nu2m .nu2 canvas{width:64px;height:64px}.nu2m .nu2 p{margin:2px 0 0}}'}));
 /* ---------- part 2: painted covers (SDXL, tools/g2_cover_cn.py) with a live layer ----------
    COVCFG[K] (part2-data.js), all in 1536×640 image coordinates:
      road: [y,dir,scale,mix]   — vehicles of one lane share one speed and keep gaps, so they never overlap
