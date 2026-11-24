@@ -5160,7 +5160,7 @@ function hardOffer(after){const sh=window.P1HardShop;if(!sh||hardPaid())return;
   const btn=(key,c,ok)=>`<button class="btn ${ok&&free>=c?'primary':''}" data-h="${key}" ${ok&&free>=c?'':'disabled'}>★ ${c}</button>`;
   const rows=HFORGE.map(f=>{const L=hl(f.id);return `<div class="frow hrow"><span class="fic">${f.ic}</span><div class="fdesc"><b>${f.n}</b><small>${f.d}</small><span class="fdots">${[0,1,2].map(i=>`<i class="${i<L?'on':''}"></i>`).join('')}</span></div>${L<3?btn(f.id,FCOST[L],true):'<span class="fmax">мастер</span>'}</div>`}).join('');
   const x4=FORGE.map(f=>{const has=hl('x_'+f.id),base=(save.forge&&save.forge[f.id])||0;return `<div class="frow hrow x4"><span class="fic">${f.ic}</span><div class="fdesc"><b>${f.n} · 4-я ступень</b><small>${base<3?'сначала выковать три обычные ступени':'ещё одна ступень в тяжёлых боях'}</small></div>${has?'<span class="fmax">мастер</span>':btn('x_'+f.id,HARD.x4,base>=3)}</div>`}).join('');
-  const sh=window.P1HardShop,off=sh&&!hardPaid()?`<div class="bonus hoffer"><span><b>Продолжение тяжёлой обороны:</b> главы III–X, до 168 звёзд.</span><button class="btn primary" id="hMoreF">${sh.price||'99 ₽'}</button></div>`:'';
+  const sh=window.P1HardShop,off=sh&&!hardPaid()&&hardGot()?`<div class="bonus hoffer"><span><b>Продолжение тяжёлой обороны:</b> главы III–X, до 168 звёзд.</span><button class="btn primary" id="hMoreF">${sh.price||'99 ₽'}</button></div>`:'';
   const d=document.createElement('div');d.className='hforge';
   d.innerHTML=`<h3>🔥 Для тяжёлой обороны</h3><p>Эти улучшения действуют только в тяжёлых боях. Звёзды на них те же — обычные и за тяжёлые победы (уже ★ ${hardGot()}).</p>${any?'':'<p class="fnone">Пройдите уровень на три звезды и попробуйте его на тяжёлой обороне.</p>'}${off}<div class="forge">${rows}</div><details class="hx4"><summary>Четвёртые ступени (★ ${HARD.x4} каждая)</summary><div class="forge">${x4}</div></details>`;
   const op=save.hx4Open;if(old)old.replaceWith(d);else box.after(d);if(old)$('mcard').scrollTop=sc;if(op)d.querySelector('.hx4').open=true;d.querySelector('.hx4').ontoggle=e=>{save.hx4Open=e.target.open?1:0};
@@ -5174,7 +5174,11 @@ const HV=new Set();
   for(let i=0;i<arts.length;i++){const el=arts[i],C=i+1,lv=el.querySelector('.lvls');if(!lv)continue;
     let three=0,any=0,got=0;for(let L=1;L<=7;L++){if((save.stars[C+'-'+L]||0)>=3)three++;if(hardOk(C,L))any++;got+=save.stars[hardKey(C,L)]||0}
     const tg=document.createElement('button');
-    if(!hardChOpen(C)){if(!three)continue;tg.className='hardT hlock';tg.innerHTML=`🔥 Тяжёлая оборона <small>🔒 продолжение</small>`;tg.onclick=e=>{e.stopPropagation();hardOffer()};lv.after(tg);continue}
+    if(!hardChOpen(C)){if(!hardGot()){  /* замок — только после первой тяжёлой победы (25.11); до неё в текущей главе — приглашение в бесплатные I–II */
+      let c0=0;for(let c=1;c<=HARD.free&&!c0;c++)for(let L=1;L<=7;L++)if(hardOk(c,L)){c0=c;break}
+      if(!c0||!el.classList.contains('open'))continue;tg.className='hardT';tg.innerHTML=`🔥 Тяжёлая оборона <small>бесплатно в главах I–II</small>`;
+      tg.onclick=e=>{e.stopPropagation();expanded.add(c0);HV.add(c0);renderMenu();const a=$('chapters').children[c0-1];if(a)a.scrollIntoView({behavior:'smooth',block:'center'})};lv.after(tg);continue}
+      if(!three)continue;tg.className='hardT hlock';tg.innerHTML=`🔥 Тяжёлая оборона <small>🔒 продолжение</small>`;tg.onclick=e=>{e.stopPropagation();hardOffer()};lv.after(tg);continue}
     const on=HV.has(C)&&any;tg.className='hardT'+(on?' on':'');tg.disabled=!any;
     tg.innerHTML=on?`← Обычные уровни <b>★ ${got}/21</b>`:`🔥 Тяжёлая оборона${any?` <b>★ ${got}/21</b>`:'<small>после 3★ на уровне</small>'}`;
     tg.onclick=e=>{e.stopPropagation();if(HV.has(C))HV.delete(C);else HV.add(C);renderMenu()};lv.after(tg);
